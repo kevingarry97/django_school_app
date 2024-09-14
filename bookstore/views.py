@@ -7,6 +7,8 @@ from .models import Book, Author, Category
 from .forms import BookForm, CategoryForm, AuthorForm
 from django.db.models import Count
 from django.db.models.functions import ExtractYear
+from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Create your views here.
 def book_chart_data(request):
@@ -59,19 +61,23 @@ def author_chart_data(request):
         'data': data  # Number of books per author
     })
     
-class DashboardView(View):
+# Optional: You can customize the login template
+class CustomLoginView(LoginView):
+    template_name = 'login.html'  # Custom template for login page
+    
+class DashboardView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'admin/layout/dashboard.html')
 
 # Book CRUD Views
-class BookListView(View):
+class BookListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         books = Book.objects.all()
         authors = Author.objects.all()
         categories = Category.objects.all()
         return render(request, 'admin/layout/book_list.html', {'books': books, 'authors': authors, 'categories': categories})
 
-class BookCRUDView(View):
+class BookCRUDView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         # Handle book creation and updating
         book_id = request.POST.get('bookId')
@@ -108,12 +114,12 @@ class BookCRUDView(View):
         return HttpResponseBadRequest("Invalid method for this endpoint")
 
 # Category CRUD
-class CategoryListView(View):
+class CategoryListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         categories = Category.objects.all()
         return render(request, 'admin/layout/category_list.html', {'categories': categories})
 
-class CategoryCRUDView(View):
+class CategoryCRUDView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         # Handle category creation and updating
         category_id = request.POST.get('categoryId')
@@ -147,7 +153,7 @@ class CategoryCRUDView(View):
             return HttpResponseBadRequest(f"Error: {str(e)}")
 
 # Author CRUD
-class AuthorListView(View):
+class AuthorListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         try:
             # Attempt to fetch authors
@@ -162,7 +168,7 @@ class AuthorListView(View):
 
         
 
-class AuthorCRUDView(View):
+class AuthorCRUDView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         author_id = request.GET.get('authorId')
         if author_id:

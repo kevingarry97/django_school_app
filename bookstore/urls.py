@@ -1,7 +1,10 @@
 from django.urls import path
-from .views import DashboardView, BookListView, BookCRUDView, CategoryListView, CategoryCRUDView, AuthorListView, AuthorCRUDView, book_chart_data, category_chart_data, author_chart_data
+from django.contrib.auth.views import LogoutView
+from .views import CustomLoginView, DashboardView, BookListView, BookCRUDView, CategoryListView, CategoryCRUDView, AuthorListView, AuthorCRUDView, book_chart_data, category_chart_data, author_chart_data
 
 urlpatterns = [  # Now this points to the login page
+    path('login/', CustomLoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     path('', DashboardView.as_view(), name='dashboard'),
     path('books/', BookListView.as_view(), name='book_list'),
     path('books/crud/', BookCRUDView.as_view(), name='book_crud_url'),
