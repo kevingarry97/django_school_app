@@ -14,4 +14,4 @@ class CategoryForm(forms.ModelForm):
 class AuthorForm(forms.ModelForm):
     class Meta:
         model = Author
-        fields = ['name']
+        fields = ['name', 'email', 'bio']

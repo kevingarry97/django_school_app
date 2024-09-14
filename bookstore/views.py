@@ -1,4 +1,4 @@
-from django.http import JsonResponse
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.shortcuts import render, redirect, get_object_or_404
@@ -27,6 +27,36 @@ def book_chart_data(request):
     return JsonResponse({
         'labels': labels,  # Years
         'data': data  # Number of books per year
+    })
+    
+# Create your views here.
+def category_chart_data(request):
+    # Count the number of books in each category
+    categories = Category.objects.annotate(book_count=Count('book'))  # Assumes 'book' is the related name for the ForeignKey in the Book model
+
+    # Prepare the data for Chart.js
+    labels = [category.name for category in categories]  # Category names as labels
+    data = [category.book_count for category in categories]  # Number of books in each category
+
+    # Return the data as JSON
+    return JsonResponse({
+        'labels': labels,  # Category names
+        'data': data  # Number of books in each category
+    })
+    
+# Create your views here.
+def author_chart_data(request):
+    # Count the number of books for each author
+    authors = Author.objects.annotate(book_count=Count('books'))  # Assumes 'books' is the related name for the ForeignKey
+
+    # Prepare the data for Chart.js
+    labels = [author.name for author in authors]  # Author names as labels
+    data = [author.book_count for author in authors]  # Number of books for each author
+
+    # Return the data as JSON
+    return JsonResponse({
+        'labels': labels,  # Author names
+        'data': data  # Number of books per author
     })
     
 class DashboardView(View):
@@ -63,7 +93,9 @@ class BookCRUDView(View):
     def delete(self, request, *args, **kwargs):
         try:
             # Get the book ID from the request body and delete the book
-            book_id = request.POST.get('bookId')
+            book_id = request.GET.get('bookId')
+            if not book_id:
+                return JsonResponse({'success': False, 'error': 'No book ID provided'}, status=400)
             book = get_object_or_404(Book, id=book_id)
             book.delete()
             return JsonResponse({'success': True})
@@ -101,8 +133,7 @@ class CategoryCRUDView(View):
     def delete(self, request, *args, **kwargs):
         try:
             # Get the category ID from the request body
-            category_id = request.POST.get('categoryId')
-
+            category_id = request.GET.get('categoryId') 
             if not category_id:
                 return JsonResponse({'success': False, 'error': 'No category ID provided'}, status=400)
 
@@ -128,11 +159,12 @@ class AuthorListView(View):
         finally:
             # This block runs regardless of whether an exception occurred or not
             print("Cleaning up")
+
         
 
 class AuthorCRUDView(View):
     def post(self, request, *args, **kwargs):
-        author_id = request.POST.get('authorId')
+        author_id = request.GET.get('authorId')
         if author_id:
             author = get_object_or_404(Author, id=author_id)
             form = AuthorForm(request.POST, instance=author)
@@ -141,15 +173,16 @@ class AuthorCRUDView(View):
         
         if form.is_valid():
             author = form.save()
-            return JsonResponse({'success': True, 'id': author.id, 'name': author.name})
+            return JsonResponse({'success': True, 'id': author.id, 'name': author.name, 'bio': author.bio, 'email': author.email})
         else:
             return JsonResponse({'success': False, 'errors': form.errors})
         
     def delete(self, request, *args, **kwargs):
         try:
             # Get the ID of the author to delete from the request body
-            author_id = request.POST.get('authorId')
-            
+            author_id = request.GET.get('authorId')
+            if not author_id:
+                return JsonResponse({'success': False, 'error': 'No author ID provided'}, status=400)
             # Ensure the author exists
             author = get_object_or_404(Author, id=author_id)
             
@@ -164,4 +197,5 @@ class AuthorCRUDView(View):
         finally:
             # This block runs regardless of whether an exception occurred or not
             print("Cleaning up")
+            
         

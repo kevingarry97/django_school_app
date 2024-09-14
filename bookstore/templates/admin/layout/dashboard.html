@@ -5,8 +5,21 @@
 {% block content %}
 <h2 class="text-2xl font-bold mb-6">Book Publication Data</h2>
 
-<!-- Canvas element where the chart will be rendered -->
-<canvas id="bookChart"></canvas>
+<!-- Tailwind grid layout: 2 charts per row -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4">Books Published per Year</h3>
+        <canvas width="100" id="bookChart"></canvas>
+    </div>
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4">Books per Category</h3>
+        <canvas width="100" id="categoryChart"></canvas>
+    </div>
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4">Books per Author</h3>
+        <canvas width="100" id="authorChart"></canvas>
+    </div>
+</div>
 
 <!-- Include Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -33,11 +46,67 @@
                 scales: {
                     y: {
                         beginAtZero: true
-                    }
+                    },
                 }
             }
         });
     })
     .catch(error => console.error('Error fetching book chart data:', error));
+
+    // Fetch the data for the category chart
+    fetch("{% url 'category_chart_data' %}")
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        const categoryChart = new Chart(ctx, {
+            type: 'bar',  // You can change this to 'pie', 'line', etc.
+            data: {
+                labels: data.labels,  // Category names as labels
+                datasets: [{
+                    label: '# of Books per Category',
+                    data: data.data,  // Number of books in each category
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',  // Customize chart colors
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true  // Start y-axis at 0
+                    }
+                }
+            }
+        });
+    })
+    .catch(error => console.error("Error fetching chart data:", error));
+
+    // Fetch the data for the author chart
+    fetch("{% url 'author_chart_data' %}")
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('authorChart').getContext('2d');
+        const authorChart = new Chart(ctx, {
+            type: 'bar',  // You can change this to 'pie', 'line', etc.
+            data: {
+                labels: data.labels,  // Author names as labels
+                datasets: [{
+                    label: '# of Books per Author',
+                    data: data.data,  // Number of books for each author
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',  // Customize chart colors
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true  // Start y-axis at 0
+                    }
+                }
+            }
+        });
+    })
+    .catch(error => console.error("Error fetching author data:", error));
 </script>
 {% endblock %}

@@ -110,13 +110,12 @@
                 btn.onclick = function() {
                     const categoryId = this.getAttribute("data-id");
                     
-                    fetch("{% url 'category_crud_url' %}", {
+                    fetch(`{% url 'category_crud_url' %}?categoryId=${categoryId}`, {
                         method: "DELETE",
                         headers: {
                             "X-CSRFToken": "{{ csrf_token }}",  // Include the CSRF token in the headers
                             "Content-Type": "application/json", // Ensure the content type is JSON
                         },
-                        body: JSON.stringify({ categoryId: categoryId })  // Send the categoryId as JSON
                     })
                     .then(response => response.json())
                     .then(data => {

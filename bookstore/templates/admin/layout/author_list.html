@@ -48,6 +48,14 @@
                     <label for="authorName" class="block text-sm font-medium text-gray-700">Author Name:</label>
                     <input type="text" id="authorName" name="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                 </div>
+                <div class="mb-4">
+                    <label for="authorEmail" class="block text-sm font-medium text-gray-700">Author Email:</label>
+                    <input type="email" id="authorEmail" name="email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div class="mb-4">
+                    <label for="authorBio" class="block text-sm font-medium text-gray-700">Author Bio:</label>
+                    <textarea name="bio" id="authorBio" cols="80" rows="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="Enter author bio..."></textarea>
+                </div>
                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                     Save Author
                 </button>
@@ -109,9 +117,8 @@
             document.querySelectorAll(".deleteAuthorBtn").forEach(btn => {
                 btn.onclick = function() {
                     const authorId = this.getAttribute("data-id");
-                    fetch("{% url 'author_crud_url' %}", {
+                    fetch(`{% url 'author_crud_url' %}?authorId=${authorId}`, {
                         method: "DELETE",
-                        body: JSON.stringify({ authorId: authorId }),
                         headers: {
                             "X-CSRFToken": "{{ csrf_token }}",
                             "Content-Type": "application/json"
