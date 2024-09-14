@@ -109,9 +109,8 @@
             document.querySelectorAll(".deleteAuthorBtn").forEach(btn => {
                 btn.onclick = function() {
                     const authorId = this.getAttribute("data-id");
-                    fetch("{% url 'author_crud_url' %}", {
+                    fetch(`{% url 'author_crud_url' %}?authorId=${authorId}`, {
                         method: "DELETE",
-                        body: JSON.stringify({ authorId: authorId }),
                         headers: {
                             "X-CSRFToken": "{{ csrf_token }}",
                             "Content-Type": "application/json"

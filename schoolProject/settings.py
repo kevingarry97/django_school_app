@@ -68,17 +68,17 @@ WSGI_APPLICATION = 'schoolProject.wsgi.application'
 # SQLite database (default) - suitable for development
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': BASE_DIR / 'db.sqlite3',
-        # 'OPTIONS': {
-        #     'timeout': 30,  # Increase timeout to 30 seconds to avoid database lock errors
-        # }
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'schooldb',
-        'USER': 'root',
-        'PASSWORD': 'Ndahiriwe123@',
-        'HOST': 'localhost',
-        'PORT': 3306
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 30,  # Increase timeout to 30 seconds to avoid database lock errors
+        }
+        # 'ENGINE': 'django.db.backends.mysql',
+        # 'NAME': 'schooldb',
+        # 'USER': 'root',
+        # 'PASSWORD': 'Ndahiriwe123@',
+        # 'HOST': 'localhost',
+        # 'PORT': 3306
     }
 }
 
@@ -104,9 +104,9 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
-USE_L10N = True
+USE_L10N = False 
 USE_TZ = True
-
+DATE_FORMAT = 'Y-m-d'
 
 # Static files (CSS, JavaScript, Images)
 # Static file settings for development and production

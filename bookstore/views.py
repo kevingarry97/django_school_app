@@ -1,4 +1,4 @@
-from django.http import JsonResponse
+from django.http import HttpResponseBadRequest, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.shortcuts import render, redirect, get_object_or_404
@@ -63,7 +63,9 @@ class BookCRUDView(View):
     def delete(self, request, *args, **kwargs):
         try:
             # Get the book ID from the request body and delete the book
-            book_id = request.POST.get('bookId')
+            book_id = request.GET.get('bookId')
+            if not book_id:
+                return JsonResponse({'success': False, 'error': 'No book ID provided'}, status=400)
             book = get_object_or_404(Book, id=book_id)
             book.delete()
             return JsonResponse({'success': True})
@@ -101,8 +103,7 @@ class CategoryCRUDView(View):
     def delete(self, request, *args, **kwargs):
         try:
             # Get the category ID from the request body
-            category_id = request.POST.get('categoryId')
-
+            category_id = request.GET.get('categoryId') 
             if not category_id:
                 return JsonResponse({'success': False, 'error': 'No category ID provided'}, status=400)
 
@@ -128,11 +129,12 @@ class AuthorListView(View):
         finally:
             # This block runs regardless of whether an exception occurred or not
             print("Cleaning up")
+
         
 
 class AuthorCRUDView(View):
     def post(self, request, *args, **kwargs):
-        author_id = request.POST.get('authorId')
+        author_id = request.GET.get('authorId')
         if author_id:
             author = get_object_or_404(Author, id=author_id)
             form = AuthorForm(request.POST, instance=author)
@@ -148,8 +150,9 @@ class AuthorCRUDView(View):
     def delete(self, request, *args, **kwargs):
         try:
             # Get the ID of the author to delete from the request body
-            author_id = request.POST.get('authorId')
-            
+            author_id = request.GET.get('authorId')
+            if not author_id:
+                return JsonResponse({'success': False, 'error': 'No author ID provided'}, status=400)
             # Ensure the author exists
             author = get_object_or_404(Author, id=author_id)
             
@@ -164,4 +167,5 @@ class AuthorCRUDView(View):
         finally:
             # This block runs regardless of whether an exception occurred or not
             print("Cleaning up")
+            
         
