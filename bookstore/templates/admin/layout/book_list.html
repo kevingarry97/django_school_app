@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'admin/layout/base.html' %}
 
 {% block title %}Book List{% endblock %}
 
@@ -8,9 +8,9 @@
     <div class="bg-white shadow-md rounded-lg p-6">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-semibold">Books</h2>
-            <a href="{% url 'book_create' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+            <button id="addBookBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                 Add Book
-            </a>
+            </button>
         </div>
         <table class="min-w-full">
             <thead>
@@ -22,18 +22,142 @@
                 </tr>
             </thead>
             <tbody>
-                {% comment %} {% for book in books %}
+                {% for book in books %}
                 <tr>
                     <td class="py-2">{{ book.title }}</td>
                     <td>{{ book.author }}</td>
                     <td>{{ book.category }}</td>
                     <td>
-                        <a href="{% url 'book_update' book.id %}" class="text-blue-500 hover:text-blue-600 mr-2">Edit</a>
-                        <a href="{% url 'book_delete' book.id %}" class="text-red-500 hover:text-red-600">Delete</a>
+                        <button class="editBookBtn text-blue-500 hover:text-blue-600 mr-2" 
+                                data-id="{{ book.id }}" data-title="{{ book.title }}" 
+                                data-author="{{ book.author.id }}" data-category="{{ book.category.id }}">
+                            Edit
+                        </button>
+                        <button class="deleteBookBtn text-red-500 hover:text-red-600" 
+                                data-id="{{ book.id }}">
+                            Delete
+                        </button>
                     </td>
                 </tr>
-                {% endfor %} {% endcomment %}
+                {% endfor %}
             </tbody>
         </table>
     </div>
+
+    <!-- Modal for Add/Edit Book -->
+    <div id="bookModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <span id="closeModal" class="cursor-pointer text-gray-500">&times;</span>
+            <h2 id="modalTitle" class="text-2xl mb-4">Add/Update Book</h2>
+            <form id="bookForm">
+                <input type="hidden" id="bookId" name="bookId">
+                <div class="mb-4">
+                    <label for="bookTitle" class="block text-sm font-medium text-gray-700">Book Title:</label>
+                    <input type="text" id="bookTitle" name="title" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div class="mb-4">
+                    <label for="bookAuthor" class="block text-sm font-medium text-gray-700">Author:</label>
+                    <select id="bookAuthor" name="author" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        {% for author in authors %}
+                        <option value="{{ author.id }}">{{ author.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="bookCategory" class="block text-sm font-medium text-gray-700">Category:</label>
+                    <select id="bookCategory" name="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                        {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    Save Book
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const modal = document.getElementById("bookModal");
+            const closeModal = document.getElementById("closeModal");
+            const bookForm = document.getElementById("bookForm");
+
+            // Open modal for adding new book
+            document.getElementById("addBookBtn").onclick = function() {
+                modal.style.display = "flex";
+                document.getElementById("modalTitle").textContent = "Add Book";
+                bookForm.reset();
+                document.getElementById("bookId").value = '';  // Clear the hidden book ID field
+            };
+
+            // Open modal for editing book
+            document.querySelectorAll(".editBookBtn").forEach(btn => {
+                btn.onclick = function() {
+                    const bookId = this.getAttribute("data-id");
+                    const bookTitle = this.getAttribute("data-title");
+                    const bookAuthor = this.getAttribute("data-author");
+                    const bookCategory = this.getAttribute("data-category");
+                    modal.style.display = "flex";
+                    document.getElementById("modalTitle").textContent = "Edit Book";
+                    document.getElementById("bookTitle").value = bookTitle;
+                    document.getElementById("bookAuthor").value = bookAuthor;
+                    document.getElementById("bookCategory").value = bookCategory;
+                    document.getElementById("bookId").value = bookId;
+                };
+            });
+
+            // Handle form submission via AJAX
+            bookForm.onsubmit = function(event) {
+                event.preventDefault();
+                const formData = new FormData(this);
+
+                fetch("{% url 'book_crud_url' %}", {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        modal.style.display = "none";
+                        location.reload(); // Optionally reload the page to see changes
+                    } else {
+                        console.log(data.errors);
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            };
+
+            // Handle delete book via AJAX
+            document.querySelectorAll(".deleteBookBtn").forEach(btn => {
+                btn.onclick = function() {
+                    const bookId = this.getAttribute("data-id");
+                    fetch("{% url 'book_crud_url' %}", {
+                        method: "DELETE",
+                        body: JSON.stringify({ bookId: bookId }),
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                            "Content-Type": "application/json"
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload(); // Optionally reload the page to see changes
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
+                };
+            });
+
+            // Close modal
+            closeModal.onclick = function() {
+                modal.style.display = "none";
+            };
+        });
+    </script>
 {% endblock %}

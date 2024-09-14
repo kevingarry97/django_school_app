@@ -1,7 +1,0 @@
-<form method="post" class="ajax-form">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-        {% if form.instance.pk %}Update{% else %}Create{% endif %}
-    </button>
-</form>

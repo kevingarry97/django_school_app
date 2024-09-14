@@ -1,0 +1,139 @@
+{% extends 'admin/layout/base.html' %}
+
+{% block title %}Category List{% endblock %}
+
+{% block content %}
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-semibold">Categories</h2>
+            <button id="addCategoryBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                Add Category
+            </button>
+        </div>
+        <table class="min-w-full bg-white">
+            <thead>
+                <tr>
+                    <th class="text-left py-2 px-4">Name</th>
+                    <th class="text-left py-2 px-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                <tr class="border-b">
+                    <td class="py-2 px-4">{{ category.name }}</td>
+                    <td class="py-2 px-4">
+                        <button class="editCategoryBtn text-blue-500 hover:text-blue-600 mr-2"
+                                data-id="{{ category.id }}" data-name="{{ category.name }}">
+                            Edit
+                        </button>
+                        <button class="deleteCategoryBtn text-red-500 hover:text-red-600" 
+                                data-id="{{ category.id }}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal for Add/Edit Category -->
+    <div id="categoryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <span id="closeModal" class="cursor-pointer text-gray-500">&times;</span>
+            <h2 id="modalTitle" class="text-2xl mb-4">Add/Update Category</h2>
+            <form id="categoryForm">
+                <input type="hidden" id="categoryId" name="categoryId">
+                <div class="mb-4">
+                    <label for="categoryName" class="block text-sm font-medium text-gray-700">Category Name:</label>
+                    <input type="text" id="categoryName" name="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    Save Category
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const modal = document.getElementById("categoryModal");
+            const closeModal = document.getElementById("closeModal");
+            const categoryForm = document.getElementById("categoryForm");
+
+            // Open modal for adding new category
+            document.getElementById("addCategoryBtn").onclick = function() {
+                modal.style.display = "flex";
+                document.getElementById("modalTitle").textContent = "Add Category";
+                categoryForm.reset();
+                document.getElementById("categoryId").value = '';  // Clear the hidden category ID field
+            };
+
+            // Open modal for editing category
+            document.querySelectorAll(".editCategoryBtn").forEach(btn => {
+                btn.onclick = function() {
+                    const categoryId = this.getAttribute("data-id");
+                    const categoryName = this.getAttribute("data-name");
+                    modal.style.display = "flex";
+                    document.getElementById("modalTitle").textContent = "Edit Category";
+                    document.getElementById("categoryName").value = categoryName;
+                    document.getElementById("categoryId").value = categoryId;
+                };
+            });
+
+            // Handle form submission via AJAX
+            categoryForm.onsubmit = function(event) {
+                event.preventDefault();
+                const formData = new FormData(this);
+
+                fetch("{% url 'category_crud_url' %}", {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        modal.style.display = "none";
+                        location.reload(); // Optionally reload the page to see changes
+                    } else {
+                        console.log(data.errors);
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            };
+
+            // Handle delete category via AJAX
+            document.querySelectorAll(".deleteCategoryBtn").forEach(btn => {
+                btn.onclick = function() {
+                    const categoryId = this.getAttribute("data-id");
+                    
+                    fetch("{% url 'category_crud_url' %}", {
+                        method: "DELETE",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",  // Include the CSRF token in the headers
+                            "Content-Type": "application/json", // Ensure the content type is JSON
+                        },
+                        body: JSON.stringify({ categoryId: categoryId })  // Send the categoryId as JSON
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();  // Reload the page after successful deletion
+                        } else {
+                            console.log("Failed to delete category:", data);
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
+                };
+            });            
+
+            // Close modal
+            closeModal.onclick = function() {
+                modal.style.display = "none";
+            };
+        });
+    </script>
+{% endblock %}
