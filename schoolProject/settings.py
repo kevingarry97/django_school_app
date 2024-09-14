@@ -19,6 +19,14 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 # Redirect users after logout
 LOGOUT_REDIRECT_URL = '/login/'
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Or the SMTP server you're using
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'kevingarry97@gmail.com'  # Your email address
+EMAIL_HOST_PASSWORD = 'bkmi iysg mhlo cmvz'  # Your email password or app-specific password
+DEFAULT_FROM_EMAIL = 'kevingarry97@gmail.com'
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 

@@ -9,6 +9,8 @@ from django.db.models import Count
 from django.db.models.functions import ExtractYear
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.mail import send_mail
+from django.conf import settings
 
 # Create your views here.
 def book_chart_data(request):
@@ -92,10 +94,24 @@ class BookCRUDView(LoginRequiredMixin, View):
         
         if form.is_valid():
             book = form.save()
+            self.send_author_email(book)
+            
             return JsonResponse({'success': True, 'id': book.id, 'title': book.title})
         else:
             return JsonResponse({'success': False, 'errors': form.errors})
 
+    def send_author_email(self, book):
+        """
+        Sends an email notification to the author when their book is successfully created or updated.
+        """
+        subject = 'Your Book Has Been Published'
+        message = f'Dear {book.author.name},\n\nYour book "{book.title}" has been successfully published!\n\nBest regards,\nYour Bookstore Team'
+        from_email = settings.DEFAULT_FROM_EMAIL
+        recipient_list = [book.author.email]  # Send to the author's email
+
+        # Send the email
+        send_mail(subject, message, from_email, recipient_list)
+        
     def delete(self, request, *args, **kwargs):
         try:
             # Get the book ID from the request body and delete the book
